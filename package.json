@@ -1,0 +1,55 @@
+{
+  "name": "automation-studio",
+  "version": "1.6.0",
+  "description": "A powerful and user-friendly Electron application for managing your tasks efficiently.",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "pack": "electron-builder",
+    "dist": "electron-builder --publish always"
+  },
+  "author": "Avri",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^1.4.0",
+    "deep-equal": "^2.2.2",
+    "dialog": "^0.3.1",
+    "electron-alert": "^0.1.20",
+    "electron-modal": "^1.0.0",
+    "electron-progressbar": "^2.0.1",
+    "jquery": "^3.6.4",
+    "simple-git": "^3.19.1",
+    "sudo-prompt": "^9.2.1",
+    "sweetalert2": "^11.7.8"
+  },
+  "devDependencies": {
+    "electron": "^23.1.1",
+    "electron-builder": "^23.6.0",
+    "electron-packager": "^17.1.1"
+  },
+  "build": {
+    "productName": "AS-Team-App",
+    "appId": "com.example.AS-Team-App",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "accessories/**/*",
+      "html/**/*",
+      "img/**/*",
+      "runCommand/**/*",
+      "style/**/*",
+      "utils/**/*",
+      "window/**/*",
+      "main.js",
+      "package.json",
+      "package-lock.json"
+    ],
+    "win": {
+      "appId": "App Link App",
+      "target": "nsis",
+      "publisherName": "AS-Team-App.com",
+      "icon": "./img/AppLogo.png"
+    }
+  }
+}
