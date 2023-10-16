@@ -1,6 +1,6 @@
 const { shell } = require("electron");
 
-function openBrowser(url = "") {
+function openBrowser(url = "https://photos.google.com") {
   shell.openExternal(url);
 }
 

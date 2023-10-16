@@ -1,38 +1,35 @@
-const { dialog } = require("electron");
+const { dialog } = require("electron")
 
-async function showGenericDialog(
-  title,
-  message,
-  detail = [],
-  buttons = ["Yes", "No"],
-  onOk = () => {},
-  onList = () => {},
-  defaultId = 0,
-  cancelId = 0,
-  checkboxLabel = "",
-  boxLabelFunk = () => {}
-) {
+const showGenericDialog = async (title, message, detail, buttons, onYes, onNo, checkboxLabel) => {
+  detail = detail || "JsIsTheBest";
+  buttons = buttons || ["Yes", "No"];
+  onYes = onYes || (() => { });
+  onNo = onNo || (() => { });
+
   const options = {
     type: "info",
     title: title,
     message: message,
     detail: detail,
     buttons: buttons,
-    defaultId: defaultId,
-    cancelId: cancelId,
+    cancelId: 150,
+    defaultId: 1,
   };
+  
   if (checkboxLabel) {
+    // Remember My Choice ! 
     options.checkboxLabel = checkboxLabel;
   }
   const response = await dialog.showMessageBox(options);
-  if (response.response === 0) {
-    onOk();
-  } 
-  else {
-    if (response.checkboxChecked) {
-      boxLabelFunk();
-    }
-    onList(detail);
+  console.log(response.response);
+  if (response.response === 150) {
+    return;
+  }
+  else if (response.response == 0) {
+    onYes();
+  }
+  else if (response.response == 1) {
+    onNo(detail);
   }
 }
 

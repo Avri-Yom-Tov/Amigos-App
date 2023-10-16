@@ -1,21 +1,19 @@
 const ProgressBar = require("electron-progressbar");
 
-function popUpProgressBar(
-  timeToClose,
-  message = "Preparing data...",
-  indeterminate = true
-) {
-  let value = 1;
+const popUpProgressBar = (timeToClose, message, indeterminate) => {
+
+  message = message || "Preparing data ..."
+  indeterminate = indeterminate || true;
+  let value = 0;
 
   const progressBar = new ProgressBar({
     indeterminate,
     text: message,
-    detail: "Wait..."
+    detail: "Wait ..."
   });
 
   const intervalOfCounter = setInterval(() => {
-    value += 1;
-
+    value = value + 1;
 
     if (value > timeToClose) {
       clearInterval(intervalOfCounter);

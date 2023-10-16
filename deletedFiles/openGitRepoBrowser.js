@@ -12,8 +12,9 @@ const openBrowser = require('../utils/openBrowser');
     const rootDir = path.resolve(__dirname, '..');
     const filePathToSave = path.join(rootDir, folderName);
     const totalFilePath = path.join(filePathToSave, 'filtered-repositories.txt');
+    let repositoriesFromFile;
     try {
-        let repositoriesFromFile = await readFile(totalFilePath);
+        repositoriesFromFile = await readFile(totalFilePath);
         repositoriesFromFile = JSON.parse(repositoriesFromFile);
     } catch (error) {
         console.log(error);
@@ -23,7 +24,6 @@ const openBrowser = require('../utils/openBrowser');
 
 
 
-    console.log(repositoriesFromFile);
     repositoriesFromFile.sort();
     if (repositoriesFromFile) {
 

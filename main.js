@@ -1,14 +1,16 @@
 const { app, BrowserWindow, ipcMain, Menu } = require("electron");
 const runShellCommand = require("./utils/runShellCommand");
+const runCommandAdmin = require("./utils/runCommandAdmin");
 const openFolder = require("./utils/openFolder");
 const popUpProgressBar = require("./utils/popUpProgressBar");
 const showNotification = require('./utils/showNotification');
-const getFilterRepositories = require("./accessories/getFilterRepositories");
+const openBrowser = require('./utils/openBrowser');
+const setAWSCredentialsEnv = require("./accessories/setAWSCredentialsEnv");
 const { exec } = require("child_process");
-
+const showGenericDialog = require('./utils/showGenericDialog');
 let mainWindow;
 
-function createWindow() {
+const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 700,
     height: 600,
@@ -27,37 +29,18 @@ function createWindow() {
       label: "Git",
       submenu: [
         {
-          label: "Open Git Repository ( Browser ) ",
-          click: () => {
-            mainWindow.loadFile("./html/openGitRepoBrowser.html");
-          },
+          label: "Open Git Repositories .. ( Browser ) ",
+          click: () => openBrowser("https://github.com/nice-cxone"),
         },
-        {
-          label: "Clone New Repository ( Master )",
-          click: () => {
-            mainWindow.loadFile("./html/cloneRepository.html");
-          },
-        },
-        {
-          label: "Update Repository file ( Locally )",
-          click: async () => {
-            try {
-              await getFilterRepositories();
-              showNotification('SUCCESS !', 'Successfully Updated Repositories !');
-            } catch (error) {
-              console.error(error);
-              showNotification('ERROR !', `Failed to Update Repositories : ${error.message}`);
-            }
-          }
-        }
       ],
     },
     {
       label: "Credentials",
       submenu: [
         {
-          label: "Run Credentials script ( PS ) ",
+          label: "Run Credentials script .. ( PS ) ",
           click: () => {
+
             const folderLocation = "C:/Intel/Conf/aws-role-creds-V2.0-updated.ps1";
             exec(`start powershell.exe -NoExit -File "${folderLocation}"`, (error, stdout, stderr) => {
               if (error) {
@@ -69,24 +52,60 @@ function createWindow() {
             });
           },
         },
+        {
+          label: "Update Aws Credentials .. ( Env ) ",
+          click: (() => {
+            setAWSCredentialsEnv()
+            setTimeout(() => {
+              showNotification('Dune !', 'Successfully Updated AWS Credentials On Env !');
+            }, 5000);
+          })
+        },
+        {
+          label: "Delete Aws Credentials  .. ( Env ) ",
+          click: (() => {
+            setAWSCredentialsEnv(true);
+            setTimeout(() => {
+              showNotification('SUCCESS !', 'Successfully Deleted AWS Credentials From Env !');
+            }, 5000);
+          })
+        },
       ],
     },
     {
       label: "Developer",
       submenu: [
         {
-          label: "Open User Folder ..  ( Systems ) ",
+          label: "Open Terminal - Work Space .. ",
+          click: () => {
+
+            const command = "cmd /k echo Type A Command and press Enter to Run it ..."
+            runShellCommand(undefined, command)
+          }
+        },
+        {
+          label: "Open Program and Software ..",
+          click: () => {
+
+            popUpProgressBar(3, `Open Program & Software !`, true);
+            runShellCommand(undefined, "control.exe appwiz.cpl", true)
+          }
+        },
+        {
+          label: "Open Environment Variables .. ",
+          click: async () => {
+            const openEnv = "rundll32 sysdm.cpl,EditEnvironmentVariables";
+            await runCommandAdmin(openEnv);
+          },
+        },
+        {
+          label: "Open User Folder - Explorer ..",
           click: (() => {
             const os = require('os');
             const userHome = os.homedir();
-            popUpProgressBar(2, `Opening folder !`, true);
-            openFolder(userHome)
+            popUpProgressBar(3, `Opening Your folder !`, true);
+            openFolder(userHome);
           }),
-
-        },
-        {
-          label: "Open Programs ..  ( Control Panel )",
-          click: () => runShellCommand("control.exe appwiz.cpl", true)
         },
       ],
     },
@@ -94,9 +113,9 @@ function createWindow() {
       label: "Application",
       submenu: [
         {
-          label: "About ..",
+          label: "Console ..",
           click: () => {
-            mainWindow.loadFile("./html/aboutThisApp.html");
+            mainWindow.webContents.openDevTools();
           },
         },
         {
@@ -106,9 +125,9 @@ function createWindow() {
           },
         },
         {
-          label: "Console ..",
+          label: "About ..",
           click: () => {
-            mainWindow.webContents.openDevTools();
+            mainWindow.loadFile("./html/aboutThisApp.html");
           },
         },
       ],
@@ -119,7 +138,7 @@ function createWindow() {
   Menu.setApplicationMenu(mainMenu);
   mainWindow.loadFile("./html/indexPage.html");
 
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   mainWindow.on("closed", function () {
     mainWindow = null;
@@ -138,6 +157,14 @@ ipcMain.on('navigate-to-main', () => {
   mainWindow.loadFile('./html/indexPage.html');
 });
 
+ipcMain.on('show-generic-dialog', () => {
+  // showGenericDialog()
+});
+
+ipcMain.on('pop-up-progress-bar', (event, time, message) => {
+  console.log(event);
+  popUpProgressBar(time, message);
+});
 
 
 
@@ -148,33 +175,32 @@ ipcMain.on('navigate-to-main', () => {
 
 
 
+// openFileDialog("jar");
 
 
+// const disableAllMenuItems = () => {
+//   for (const item of mainMenu.items) {
+//     if (item.submenu) {
+//       for (const subItem of item.submenu.items) {
+//         subItem.enabled = false;
+//       }
+//     } else {
+//       item.enabled = false;
+//     }
+//   }
+// }
 
-function disableAllMenuItems() {
-  for (const item of mainMenu.items) {
-    if (item.submenu) {
-      for (const subItem of item.submenu.items) {
-        subItem.enabled = false;
-      }
-    } else {
-      item.enabled = false;
-    }
-  }
-}
-
-// Function to enable all menu items
-function enableAllMenuItems() {
-  for (const item of mainMenu.items) {
-    if (item.submenu) {
-      for (const subItem of item.submenu.items) {
-        subItem.enabled = true;
-      }
-    } else {
-      item.enabled = true;
-    }
-  }
-}
+// const enableAllMenuItems = () => {
+//   for (const item of mainMenu.items) {
+//     if (item.submenu) {
+//       for (const subItem of item.submenu.items) {
+//         subItem.enabled = true;
+//       }
+//     } else {
+//       item.enabled = true;
+//     }
+//   }
+// }
 
 
 

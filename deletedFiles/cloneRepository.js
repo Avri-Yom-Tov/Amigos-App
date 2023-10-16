@@ -8,7 +8,7 @@ const listFilesInDirectory = require("../accessories/listFilesInDirectory");
 
 
 (async () => {
-  const folderPath = "C:/Works/amigos-team";
+  const folderPath = "C:\\Works\\amigos-team";
   const workFolderRepositories = await listFilesInDirectory(folderPath);
   const folderName = 'data';
   const rootDir = path.resolve(__dirname, '..');
@@ -19,7 +19,6 @@ const listFilesInDirectory = require("../accessories/listFilesInDirectory");
 
   const mapArray = repositoriesFromFile.map((item) => item);
   const filerCloneArray = difference(mapArray, workFolderRepositories);
-  console.log(repositoriesFromFile.length);
   if (filerCloneArray.length) {
 
     const container = document.getElementById('content');

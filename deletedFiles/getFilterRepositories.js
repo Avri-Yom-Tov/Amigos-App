@@ -7,13 +7,13 @@ const path = require('path');
 
 
 
-const getFilterRepositories = async () => {
+const getFilterRepositories = async (includeJava) => {
   const orgName = 'nice-cxone';
   const specificUsers = ['Avri-Yom-Tov', 'itchySun', 'OffirLandau', 'OENice'];
-  const targetLanguages = ['JavaScript']; // ['Java]
+  const targetLanguages = includeJava ? ['JavaScript', 'Java'] : ['JavaScript'];
   const per_page = 100;
   const githubToken = process.env.GIT_TOK;
-  
+
   const progressBar = new ProgressBar({
     indeterminate: true,
     text: 'Fetching Repos ...',
@@ -100,3 +100,4 @@ const getFilterRepositories = async () => {
 
 
 module.exports = getFilterRepositories;
+
