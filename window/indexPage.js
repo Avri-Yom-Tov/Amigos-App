@@ -39,7 +39,7 @@ window.onload = async () => {
       event.preventDefault();
       ipcRenderer.send('pop-up-progress-bar', 2, 'Opening Folder ..');
       console.log('contextmenu-click detected!');
-      openFolder(folderPath + "/" + element);
+      openFolder(folderPath + "\\" + element);
     });
 
     let clickCount = 0;

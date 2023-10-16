@@ -158,7 +158,7 @@ ipcMain.on('navigate-to-main', () => {
 });
 
 ipcMain.on('show-generic-dialog', () => {
-  // showGenericDialog()
+  showGenericDialog()
 });
 
 ipcMain.on('pop-up-progress-bar', (event, time, message) => {

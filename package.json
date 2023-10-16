@@ -40,13 +40,11 @@
       "accessories/**/*",
       "html/**/*",
       "img/**/*",
-      "runCommand/**/*",
       "style/**/*",
       "utils/**/*",
       "window/**/*",
       "main.js",
-      "package.json",
-      "package-lock.json"
+      "package.json"
     ],
     "win": {
       "appId": "App Link App",
