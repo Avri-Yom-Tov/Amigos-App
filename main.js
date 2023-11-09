@@ -4,6 +4,7 @@ const runCommandAdmin = require("./utils/runCommandAdmin");
 const openFolder = require("./utils/openFolder");
 const popUpProgressBar = require("./utils/popUpProgressBar");
 const showNotification = require('./utils/showNotification');
+const copyToClipboard = require('./utils/copyToClipboard');
 const openBrowser = require('./utils/openBrowser');
 const setAWSCredentialsEnv = require("./accessories/setAWSCredentialsEnv");
 const { exec } = require("child_process");
@@ -55,7 +56,7 @@ const createWindow = () => {
         {
           label: "Update Aws Credentials .. ( Env ) ",
           click: (() => {
-            setAWSCredentialsEnv()
+            setAWSCredentialsEnv();
             setTimeout(() => {
               showNotification('Dune !', 'Successfully Updated AWS Credentials On Env !');
             }, 5000);
@@ -68,6 +69,15 @@ const createWindow = () => {
             setTimeout(() => {
               showNotification('SUCCESS !', 'Successfully Deleted AWS Credentials From Env !');
             }, 5000);
+          })
+        },
+        {
+          label: "Copy to the clipboard  .. ( Js Funk .. ) ",
+          click: (() => {
+            const copyThis = `const setEnvParams = async () => {
+              await require('C:/Intel/Amigos-App/accessories/setAWSCredentials.js');
+              process.env.ENV_PROFILE = "dev";}`
+            copyToClipboard(copyThis)
           })
         },
       ],

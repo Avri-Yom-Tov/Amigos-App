@@ -38,7 +38,7 @@ const setAWSCredentialsEnv = async (deleteCredentials) => {
 
   } catch (err) {
 
-    console.error('An error occurred:', err.massage);
+    console.error('An error occurred:', err);
   }
 }
 

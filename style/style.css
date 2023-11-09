@@ -2,6 +2,19 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+
+  font-family: "Roboto", sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  background-color: #f1f1f1;
+}
+
+#searchBox {
+  width: 30%;
+  height: 45px;
+  outline: none;
+  border: none;
+  margin-left: 10px;
 }
 
 body {
@@ -12,8 +25,12 @@ body {
 }
 
 header {
-  background-color: #fff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+#searchBox:focus {
+  outline: none;
+  border: none;
 }
 
 .title-bar {
@@ -85,7 +102,6 @@ li {
   height: 35px;
   width: 86%;
 }
-
 
 .customSwalBtn {
   background-color: #4caf50;

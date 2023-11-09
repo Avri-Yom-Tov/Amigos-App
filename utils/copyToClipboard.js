@@ -3,7 +3,7 @@ const notification = require("./showNotification");
 
 function copyToClipboard(text, type = "selection") {
   clipboard.writeText(text, type);
-  notification("Copied to Clipboard !", text,);
+  notification("Copied to Clipboard !", text);
 }
 
 module.exports = copyToClipboard;
