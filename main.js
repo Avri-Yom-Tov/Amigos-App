@@ -1,14 +1,17 @@
-const { app, BrowserWindow, ipcMain, Menu } = require("electron");
+const { setValue, clearAllStore } = require('./accessories/electronStore');
+const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
+const showGenericDialog = require('./utils/showGenericDialog');
+const popUpProgressBar = require("./utils/popUpProgressBar");
 const runShellCommand = require("./utils/runShellCommand");
 const runCommandAdmin = require("./utils/runCommandAdmin");
-const openFolder = require("./utils/openFolder");
-const popUpProgressBar = require("./utils/popUpProgressBar");
-const showNotification = require('./utils/showNotification');
 const copyToClipboard = require('./utils/copyToClipboard');
 const openBrowser = require('./utils/openBrowser');
-const setAWSCredentialsEnv = require("./accessories/setAWSCredentialsEnv");
+const openFolder = require("./utils/openFolder");
+const openDialog = require('./utils/openDialog');
+const openFile = require('./utils/openFile');
 const { exec } = require("child_process");
-const showGenericDialog = require('./utils/showGenericDialog');
+
+const userHome = require('os').homedir();
 let mainWindow;
 
 const createWindow = () => {
@@ -27,16 +30,7 @@ const createWindow = () => {
 
   const menuBarApp = [
     {
-      label: "Git",
-      submenu: [
-        {
-          label: "Open Git Repositories .. ( Browser ) ",
-          click: () => openBrowser("https://github.com/nice-cxone"),
-        },
-      ],
-    },
-    {
-      label: "Credentials",
+      label: "Start",
       submenu: [
         {
           label: "Run Credentials script .. ( PS ) ",
@@ -54,32 +48,28 @@ const createWindow = () => {
           },
         },
         {
-          label: "Update Aws Credentials .. ( Env ) ",
-          click: (() => {
-            setAWSCredentialsEnv();
-            setTimeout(() => {
-              showNotification('Dune !', 'Successfully Updated AWS Credentials On Env !');
-            }, 5000);
-          })
+          label: "Open Git Repos .. ( Browser ) ",
+          click: () => openBrowser("https://github.com/nice-cxone"),
         },
         {
-          label: "Delete Aws Credentials  .. ( Env ) ",
-          click: (() => {
-            setAWSCredentialsEnv(true);
-            setTimeout(() => {
-              showNotification('SUCCESS !', 'Successfully Deleted AWS Credentials From Env !');
-            }, 5000);
-          })
+          label: "Book A Desk ( Edge )",
+          click: () => {
+
+            const folderLocation = "C:/Intel/Conf/aws-role-creds-V2.0-updated.ps1";
+            exec(`start powershell.exe -NoExit -File "${folderLocation}"`, (error, stdout, stderr) => {
+              if (error) {
+                console.error(`Error executing PS script: ${error}`);
+                return;
+              }
+              console.log(`STDOUT: ${stdout}`);
+              console.error(`STDERR: ${stderr}`);
+            });
+          },
         },
-        {
-          label: "Copy to the clipboard  .. ( Js Funk .. ) ",
-          click: (() => {
-            const copyThis = `const setEnvParams = async () => {
-              await require('C:/Intel/Amigos-App/accessories/setAWSCredentials.js');
-              process.env.ENV_PROFILE = "dev";}`
-            copyToClipboard(copyThis)
-          })
-        },
+        ...(process.env.MODE ? [{
+          label: "Copy to the clipboard  .. ( Js .. ) ",
+          click: (() => { copyToClipboard(`await require('C:/Intel/Amigos-App/accessories/setAWSCredentials.js');`) })
+        }] : []),
       ],
     },
     {
@@ -88,17 +78,8 @@ const createWindow = () => {
         {
           label: "Open Terminal - Work Space .. ",
           click: () => {
-
             const command = "cmd /k echo Type A Command and press Enter to Run it ..."
             runShellCommand(undefined, command)
-          }
-        },
-        {
-          label: "Open Program and Software ..",
-          click: () => {
-
-            popUpProgressBar(3, `Open Program & Software !`, true);
-            runShellCommand(undefined, "control.exe appwiz.cpl", true)
           }
         },
         {
@@ -111,8 +92,6 @@ const createWindow = () => {
         {
           label: "Open User Folder - Explorer ..",
           click: (() => {
-            const os = require('os');
-            const userHome = os.homedir();
             popUpProgressBar(3, `Opening Your folder !`, true);
             openFolder(userHome);
           }),
@@ -122,6 +101,12 @@ const createWindow = () => {
     {
       label: "Application",
       submenu: [
+        {
+          label: "Settings ..",
+          click: () => {
+            mainWindow.loadFile("./html/settingsPage.html");
+          },
+        },
         {
           label: "Console ..",
           click: () => {
@@ -148,32 +133,78 @@ const createWindow = () => {
   Menu.setApplicationMenu(mainMenu);
   mainWindow.loadFile("./html/indexPage.html");
 
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 
-  mainWindow.on("closed", function () {
-    mainWindow = null;
-  });
+  mainWindow.on("closed", () => { mainWindow = null });
 }
 
 
-app.on("ready", ev => {
+
+ipcMain.on('navigate-to-main', () => { mainWindow.loadFile('./html/indexPage.html') });
+
+ipcMain.on('navigate-to-settings', () => { mainWindow.loadFile("./html/settingsPage.html") });
+
+ipcMain.on('close-windows', () => { app.quit() });
+
+ipcMain.on('pop-up-progress-bar', (event, time, message) => { popUpProgressBar(time, message) });
+
+ipcMain.on('pop-up-progress-bar', (event, time, message) => { popUpProgressBar(time, message) });
+
+ipcMain.on('set-value-in-store', (event, key, value) => { setValue(key, value) });
+
+ipcMain.on('show-init-dialog', async (event, title, message, detail, buttons) => {
+
+  mainWindow.setEnabled(false);
+  const onYes = () => { mainWindow.loadFile("./html/settingsPage.html") };
+  const onNo = () => { app.quit() };
+  await showGenericDialog(title, message, detail, buttons, onYes, onNo);
+  mainWindow.setEnabled(true);
+
+
+});
+
+ipcMain.on('show-config-dialog', async (event, title, message, detail, buttons) => {
+
+
+  const onYes = () => {
+    const isFileExists = openFile(userHome, 'amigosData.json');
+    if (isFileExists) {
+      dialog.showErrorBox('Major Error !', 'amigosData.json not exists !');
+      return;
+    }
+
+    popUpProgressBar(2, `Try To Open => amigosData.json ..`, true);
+  };
+  const onNo = () => { return };
+  await showGenericDialog(title, message, detail, buttons, onYes, onNo);
+});
+
+
+
+ipcMain.on('clear-all-from-store', () => {
+  clearAllStore();
+  popUpProgressBar(4, `Cleaning and Restarting ...`, true);
+  setTimeout(() => { app.relaunch(); app.quit(); }, 1000);
+});
+
+ipcMain.on('open-directory-dialog', async () => {
+  const repoPath = await openDialog(mainWindow, ['openDirectory']);
+  setValue('repoPath', repoPath);
+});
+
+ipcMain.on('open-file-dialog', async () => {
+  const credentialsPath = await openDialog(mainWindow, ['openFile'], [{ name: 'Powershell Script', extensions: ['ps1'] }]);
+  setValue('credentialsPath', credentialsPath);
+});
+
+
+
+
+
+
+app.on("ready", (ev) => {
   createWindow();
-  if (process.platform == 'win32') {
-    app.setAppUserModelId('App Link App');
-  }
-})
-
-ipcMain.on('navigate-to-main', () => {
-  mainWindow.loadFile('./html/indexPage.html');
-});
-
-ipcMain.on('show-generic-dialog', () => {
-  showGenericDialog()
-});
-
-ipcMain.on('pop-up-progress-bar', (event, time, message) => {
-  console.log(event);
-  popUpProgressBar(time, message);
+  app.setAppUserModelId('App Link App');
 });
 
 
@@ -181,36 +212,6 @@ ipcMain.on('pop-up-progress-bar', (event, time, message) => {
 
 
 
-
-
-
-
-// openFileDialog("jar");
-
-
-// const disableAllMenuItems = () => {
-//   for (const item of mainMenu.items) {
-//     if (item.submenu) {
-//       for (const subItem of item.submenu.items) {
-//         subItem.enabled = false;
-//       }
-//     } else {
-//       item.enabled = false;
-//     }
-//   }
-// }
-
-// const enableAllMenuItems = () => {
-//   for (const item of mainMenu.items) {
-//     if (item.submenu) {
-//       for (const subItem of item.submenu.items) {
-//         subItem.enabled = true;
-//       }
-//     } else {
-//       item.enabled = true;
-//     }
-//   }
-// }
 
 
 

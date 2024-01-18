@@ -1,15 +1,18 @@
+
+
+
 const fs = require("fs");
+const path = require("path");
+
+const openFile = (folderLocation, fileName) => {
 
 
-const openFile = (fileName, folderLocation) => {
-  const filePath = folderLocation + fileName;
-  fs.access(filePath, (err) => {
-    if (err) {
-      console.error(err);
-      return;
-    }
-    require("child_process").exec("start " + filePath);
-  });
-};
+  const filePath = path.join(folderLocation, fileName);
+  if (fs.existsSync(filePath)) {
+    require("child_process").exec(filePath);
+    return true;
+  };
+  return false;
+}
 
 module.exports = openFile;

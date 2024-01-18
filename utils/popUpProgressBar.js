@@ -1,9 +1,7 @@
 const ProgressBar = require("electron-progressbar");
 
-const popUpProgressBar = (timeToClose, message, indeterminate) => {
+const popUpProgressBar = (timeToClose, message = "Preparing data ...", indeterminate = true) => {
 
-  message = message || "Preparing data ..."
-  indeterminate = indeterminate || true;
   let value = 0;
 
   const progressBar = new ProgressBar({

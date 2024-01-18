@@ -1,144 +1,157 @@
 
 
 
-
-// const runShellCommand = require("../utils/runShellCommand");
-// const listFilesInDirectory = require("../accessories/listFilesInDirectory");
-// const openFolder = require('../utils/openFolder');
-// const openBrowser = require('../utils/openBrowser');
-// const { ipcRenderer } = require('electron');
-
-// window.onload = async () => {
-
-//   const folderPath = "C:\\Works\\amigos-team";
-//   const scriptsList = document.getElementById("scripts");
-//   const workFolderRepositories = await listFilesInDirectory(folderPath);
-//   workFolderRepositories.sort((a, b) => a - b);
-
-
-//   const titleElement = document.querySelector('.title');
-
-//   titleElement.addEventListener('click', (() => {
-
-//   }));
-
-//   workFolderRepositories.forEach(element => {
-//     const card = document.createElement("li");
-//     card.classList.add("collection-item");
-
-//     const title = document.createElement("h4");
-//     title.innerHTML = element.charAt(0).toUpperCase() + element.slice(1).toLowerCase();
-//     title.classList.add("card-title");
-
-//     const body = document.createElement("p");
-
-//     card.appendChild(title);
-//     card.appendChild(body);
-
-//     card.addEventListener('contextmenu', (event) => {
-//       event.preventDefault();
-//       ipcRenderer.send('pop-up-progress-bar', 2, 'Opening Folder ..');
-//       console.log('contextmenu-click detected!');
-//       openFolder(folderPath + "\\" + element);
-//     });
-
-//     let clickCount = 0;
-//     let timer;
-
-//     card.addEventListener('click', () => {
-//       clickCount++;
-//       clearTimeout(timer);
-
-//       timer = setTimeout(() => {
-
-//         if (clickCount === 1) {
-//           ipcRenderer.send('pop-up-progress-bar', 1, 'Opening browser ..');
-//           console.log(`${clickCount} click detected !`);
-//           openBrowser(`https://github.com/nice-cxone/${element}`);
-//         }
-
-//         if (clickCount === 2) {
-//           ipcRenderer.send('pop-up-progress-bar', 3, 'Vs code is opening ..');
-//           console.log(`${clickCount} clicks detected !`);
-//           runShellCommand(folderPath + "/" + element, 'code .', true);
-//         }
-
-//         clickCount = 0;
-//       }, 300);
-
-//     });
-
-
-//     scriptsList.appendChild(card);
-//   });
-// };
-
-
-
-
-const runShellCommand = require("../utils/runShellCommand");
-const listFilesInDirectory = require("../accessories/listFilesInDirectory");
-const openFolder = require('../utils/openFolder');
-const openBrowser = require('../utils/openBrowser');
+const Swal = require('sweetalert2');
 const { ipcRenderer } = require('electron');
+
+const listFilesInDirectory = require("../accessories/listFilesInDirectory");
+const getLatestIntelliJPath = require('../utils/getLatestIntelliJPath');
+const { getValue } = require('../accessories/electronStore');
+const runShellCommand = require("../utils/runShellCommand");
+const openBrowser = require('../utils/openBrowser');
+const openFolder = require('../utils/openFolder');
+const readFile = require('../utils/readFile');
+
+const folderPath = "C:\\Works\\amigos-team";
+const userHome = require('os').homedir();
+
+const createButton = (src, title) => {
+  const button = document.createElement("img");
+  button.src = src;
+  button.title = title;
+  button.classList.add("icon-size");
+  return button;
+}
+
+const openWithIDE = (element) => {
+
+  try {
+    const ideSelectToOpenWith = getValue('ideSelect') === 'intellij';
+    if (ideSelectToOpenWith) {
+      const intelliJPath = getLatestIntelliJPath();
+      ipcRenderer.send('pop-up-progress-bar', 2, 'Opening Intellij IDE..');
+      runShellCommand(folderPath + "\\" + element, intelliJPath, true);
+      return;
+    }
+    ipcRenderer.send('pop-up-progress-bar', 2, 'Opening VS code IDE..');
+    runShellCommand(folderPath + "\\" + element, 'code .', true);
+
+
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      text: error.message,
+    });
+  }
+
+}
+
+const openOnGithub = (element) => {
+  ipcRenderer.send('pop-up-progress-bar', 1, 'Opening browser ..');
+  openBrowser(`https://github.com/nice-cxone/${element}`);
+}
+
+const openOnFolder = (element) => {
+  ipcRenderer.send('pop-up-progress-bar', 2, 'Opening Folder ..');
+  openFolder(folderPath + "\\" + element);
+}
+
+const openOnJenkins = async (element) => {
+
+  const pipesUrls = await readFile(`${userHome}\\amigosData.json`, true);
+  if (pipesUrls[element].aws) {
+    ipcRenderer.send('pop-up-progress-bar', 2, 'Open On Jenkins..');
+    setTimeout(() => { openBrowser(pipesUrls[element].job) }, 1500);
+    return;
+  };
+  const title = `I'm sorry, I don't have enough information to continue ..`;
+  const msg = 'One or more the Urls in the configuration file are missing ,To solve this problem you need to edit the configuration file and then try again ..'
+  const buttons = ['Yes, Set It Now !', 'Not now .'];
+
+  ipcRenderer.send('show-config-dialog', 'info', title, msg, buttons);
+}
+
+const openOnAmazon = async (element) => {
+  const pipesUrls = await readFile(`${userHome}\\amigosData.json`, true);
+  if (pipesUrls[element].aws) {
+    ipcRenderer.send('pop-up-progress-bar', 2, 'Open on Aws console..');
+    setTimeout(() => { openBrowser(pipesUrls[element].aws) }, 1500);
+    return;
+  };
+
+  const title = `I'm sorry, Missing details to continue..`;
+  const msg = 'One or more the Urls in the configuration file are missing ,To solve this problem you need to edit the configuration file and then try again ..'
+  const buttons = ['Yes, Set It Now !', 'Not now .'];
+
+  ipcRenderer.send('show-config-dialog', 'info', title, msg, buttons);
+
+}
+
+
 
 window.onload = async () => {
 
-  const folderPath = "C:\\Works\\amigos-team";
+  if (!getValue('ideSelect') || !getValue('repoPath') || !getValue('credentialsPath')) {
+    const title = 'Hey user, Pay attention !';
+    const msg = 'Probably this is your first time running this software, you must configure some important settings before you start ..'
+    const buttons = ['Yes, Set It Now !', 'No, Exit ..'];
+
+    ipcRenderer.send('show-init-dialog', 'info', title, msg, buttons);
+  }
+
+
   const scriptsList = document.getElementById("scripts");
   const workFolderRepositories = await listFilesInDirectory(folderPath);
   workFolderRepositories.sort((a, b) => a - b);
 
+
   let listItems = [];
 
-  workFolderRepositories.forEach(element => {
+  workFolderRepositories.forEach((element) => {
+
+    const btnContainer = document.createElement("div");
     const card = document.createElement("li");
+    const title = document.createElement("h4");
+    const body = document.createElement("p");
     card.classList.add("collection-item");
 
-    const title = document.createElement("h4");
-    title.innerHTML = element.charAt(0).toUpperCase() + element.slice(1).toLowerCase();
+    const repoName = element.startsWith("cloud-formation-") && element !== 'cloud-formation-cxhist-storage' ? element.substring("cloud-formation-".length) : element;
+    title.innerHTML = repoName.charAt(0).toUpperCase() + repoName.slice(1).toLowerCase();
     title.classList.add("card-title");
 
-    const body = document.createElement("p");
+
+    btnContainer.classList.add("cardAss");
+
+
+    const buttons = [
+      { img: "../img/programming.png", label: "Open On IDE", action: (() => openWithIDE(element)) },
+      { img: "../img/social.png", label: "Open On Github", action: (() => { openOnGithub(element) }) },
+      { img: "../img/open-folder.png", label: "Open On Folder", action: (() => { openOnFolder(element) }) },
+      { img: "../img/jenkins.png", label: "Open On Jenkins", action: (() => { openOnJenkins(element) }) },
+      { img: "../img/amazon.png", label: "Open On Aws", action: (() => { openOnAmazon(element) }) }
+    ];
+
+
+    buttons.forEach(({ img, label, action }) => {
+      const button = createButton(img, label);
+      button.addEventListener('click', action);
+      btnContainer.appendChild(button);
+    });
+
 
     card.appendChild(title);
     card.appendChild(body);
-
-    card.addEventListener('contextmenu', (event) => {
-      event.preventDefault();
-      ipcRenderer.send('pop-up-progress-bar', 2, 'Opening Folder ..');
-      openFolder(folderPath + "\\" + element);
-    });
-
-    let clickCount = 0;
-    let timer;
-
-    card.addEventListener('click', () => {
-      clickCount++;
-      clearTimeout(timer);
-
-      timer = setTimeout(() => {
-        if (clickCount === 1) {
-          ipcRenderer.send('pop-up-progress-bar', 1, 'Opening browser ..');
-          openBrowser(`https://github.com/nice-cxone/${element}`);
-        }
-
-        if (clickCount === 2) {
-          ipcRenderer.send('pop-up-progress-bar', 3, 'Vs code is opening ..');
-          runShellCommand(folderPath + "/" + element, 'code .', true);
-        }
-
-        clickCount = 0;
-      }, 300);
-    });
+    card.appendChild(btnContainer);
 
     scriptsList.appendChild(card);
     listItems.push({ element, card });
   });
 
+
   const searchBox = document.getElementById("searchBox");
   searchBox.addEventListener('keyup', function () {
-    let searchValue = searchBox.value.toLowerCase();
+    const searchValue = searchBox.value.toLowerCase();
     filterRepositories(searchValue);
   });
 
@@ -155,6 +168,5 @@ window.onload = async () => {
     });
   }
 };
-
 
 

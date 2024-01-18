@@ -15,21 +15,24 @@ const showGenericDialog = async (title, message, detail, buttons, onYes, onNo, c
     cancelId: 150,
     defaultId: 1,
   };
-  
+
   if (checkboxLabel) {
     // Remember My Choice ! 
     options.checkboxLabel = checkboxLabel;
   }
   const response = await dialog.showMessageBox(options);
-  console.log(response.response);
+
   if (response.response === 150) {
+    onNo();
     return;
   }
-  else if (response.response == 0) {
+  if (response.response === 0) {
     onYes();
+    return;
   }
-  else if (response.response == 1) {
-    onNo(detail);
+  if (response.response === 1) {
+    onNo();
+    return;
   }
 }
 

@@ -1,9 +1,9 @@
 const fs = require('fs').promises;
 
-async function readFile(fullPath) {
+const readFile = async (fullPath, parseJson) => {
   try {
     const data = await fs.readFile(fullPath, 'utf8');
-    return data;
+    return parseJson ? JSON.parse(data) : data;
   } catch (err) {
     console.error('An error occurred:', err);
     throw err;
