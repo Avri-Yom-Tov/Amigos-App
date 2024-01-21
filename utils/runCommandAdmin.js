@@ -6,7 +6,7 @@ const runCommandAdmin = (cmd) => {
     const options = {
       name: "Electron App",
     };
-    const child  = sudo.exec(cmd, options, (error, stdout, stderr) => {
+    sudo.exec(cmd, options, (error, stdout, stderr) => {
       if (error) {
         reject(error);
       } else {

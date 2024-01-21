@@ -36,7 +36,6 @@ const openWithIDE = (element) => {
     ipcRenderer.send('pop-up-progress-bar', 2, 'Opening VS code IDE..');
     runShellCommand(folderPath + "\\" + element, 'code .', true);
 
-
   } catch (error) {
     Swal.fire({
       icon: 'error',
@@ -57,36 +56,31 @@ const openOnFolder = (element) => {
   openFolder(folderPath + "\\" + element);
 }
 
-const openOnJenkins = async (element) => {
 
-  const pipesUrls = await readFile(`${userHome}\\amigosData.json`, true);
-  if (pipesUrls[element].aws) {
-    ipcRenderer.send('pop-up-progress-bar', 2, 'Open On Jenkins..');
-    setTimeout(() => { openBrowser(pipesUrls[element].job) }, 1500);
-    return;
-  };
-  const title = `I'm sorry, I don't have enough information to continue ..`;
-  const msg = 'One or more the Urls in the configuration file are missing ,To solve this problem you need to edit the configuration file and then try again ..'
-  const buttons = ['Yes, Set It Now !', 'Not now .'];
 
-  ipcRenderer.send('show-config-dialog', 'info', title, msg, buttons);
+const openResource = async (element, resourceType) => {
+  try {
+    const pipesUrls = await readFile(`${userHome}\\amigosData.json`, true);
+    if (pipesUrls[element][resourceType]) {
+      ipcRenderer.send('pop-up-progress-bar', 2, `Open on ${resourceType}..`);
+      setTimeout(() => { openBrowser(pipesUrls[element][resourceType]) }, 1500);
+      return;
+    }
+
+    const title = `I'm sorry, Missing details to continue ..`;
+    const msg = 'One or more the Urls in the configuration file are missing, To solve this problem you need to edit the configuration file and then try again ..';
+    const buttons = ['Yes, Set It Now !', 'Not now .'];
+
+    ipcRenderer.send('show-config-dialog', 'info', title, msg, buttons);
+  } catch (error) {
+    Swal.fire({
+      icon: 'error',
+      title: 'Error!',
+      text: error.message,
+    });
+  }
 }
 
-const openOnAmazon = async (element) => {
-  const pipesUrls = await readFile(`${userHome}\\amigosData.json`, true);
-  if (pipesUrls[element].aws) {
-    ipcRenderer.send('pop-up-progress-bar', 2, 'Open on Aws console..');
-    setTimeout(() => { openBrowser(pipesUrls[element].aws) }, 1500);
-    return;
-  };
-
-  const title = `I'm sorry, Missing details to continue..`;
-  const msg = 'One or more the Urls in the configuration file are missing ,To solve this problem you need to edit the configuration file and then try again ..'
-  const buttons = ['Yes, Set It Now !', 'Not now .'];
-
-  ipcRenderer.send('show-config-dialog', 'info', title, msg, buttons);
-
-}
 
 
 
@@ -128,8 +122,8 @@ window.onload = async () => {
       { img: "../img/programming.png", label: "Open On IDE", action: (() => openWithIDE(element)) },
       { img: "../img/social.png", label: "Open On Github", action: (() => { openOnGithub(element) }) },
       { img: "../img/open-folder.png", label: "Open On Folder", action: (() => { openOnFolder(element) }) },
-      { img: "../img/jenkins.png", label: "Open On Jenkins", action: (() => { openOnJenkins(element) }) },
-      { img: "../img/amazon.png", label: "Open On Aws", action: (() => { openOnAmazon(element) }) }
+      { img: "../img/jenkins.png", label: "Open On Jenkins", action: (() => { openResource(element, 'job') }) },
+      { img: "../img/amazon.png", label: "Open On Aws", action: (() => { openResource(element, 'aws') }) }
     ];
 
 
@@ -168,5 +162,8 @@ window.onload = async () => {
     });
   }
 };
+
+
+
 
 

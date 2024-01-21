@@ -5,9 +5,8 @@ const backButton = document.getElementById("backButton");
 const ideSelect = document.getElementById('ideSelect');
 const repoPath = document.getElementById('repoPath');
 const credentialsPath = document.getElementById('credentialsPath');
-const clearButton = document.getElementById('clearButton');
 
-ideSelect.value = getValue('ideSelect') || 'vscode';
+ideSelect.value = getValue('ideSelect') || '';
 
 
 backButton.addEventListener("click", () => {
@@ -27,6 +26,3 @@ credentialsPath.addEventListener('click', () => {
     ipcRenderer.send('open-file-dialog');
 });
 
-clearButton.addEventListener('click', () => {
-    ipcRenderer.send('clear-all-from-store');
-});

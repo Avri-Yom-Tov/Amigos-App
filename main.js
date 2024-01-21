@@ -1,4 +1,4 @@
-const { setValue, clearAllStore } = require('./accessories/electronStore');
+const { setValue, getValue, clearAllStore } = require('./accessories/electronStore');
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
 const showGenericDialog = require('./utils/showGenericDialog');
 const popUpProgressBar = require("./utils/popUpProgressBar");
@@ -35,8 +35,7 @@ const createWindow = () => {
         {
           label: "Run Credentials script .. ( PS ) ",
           click: () => {
-
-            const folderLocation = "C:/Intel/Conf/aws-role-creds-V2.0-updated.ps1";
+            const folderLocation = getValue('credentialsPath');
             exec(`start powershell.exe -NoExit -File "${folderLocation}"`, (error, stdout, stderr) => {
               if (error) {
                 console.error(`Error executing PS script: ${error}`);
@@ -52,19 +51,8 @@ const createWindow = () => {
           click: () => openBrowser("https://github.com/nice-cxone"),
         },
         {
-          label: "Book A Desk ( Edge )",
-          click: () => {
-
-            const folderLocation = "C:/Intel/Conf/aws-role-creds-V2.0-updated.ps1";
-            exec(`start powershell.exe -NoExit -File "${folderLocation}"`, (error, stdout, stderr) => {
-              if (error) {
-                console.error(`Error executing PS script: ${error}`);
-                return;
-              }
-              console.log(`STDOUT: ${stdout}`);
-              console.error(`STDERR: ${stderr}`);
-            });
-          },
+          label: "Book A Desk .. ( OfficeSpace )",
+          click: () => { openBrowser("https://nice.officespacesoftware.com/visual-directory/floors/78") },
         },
         ...(process.env.MODE ? [{
           label: "Copy to the clipboard  .. ( Js .. ) ",
@@ -110,6 +98,7 @@ const createWindow = () => {
         {
           label: "Console ..",
           click: () => {
+            process.env.MODE && clearAndReset();
             mainWindow.webContents.openDevTools();
           },
         },
@@ -164,28 +153,19 @@ ipcMain.on('show-init-dialog', async (event, title, message, detail, buttons) =>
 });
 
 ipcMain.on('show-config-dialog', async (event, title, message, detail, buttons) => {
-
-
   const onYes = () => {
     const isFileExists = openFile(userHome, 'amigosData.json');
-    if (isFileExists) {
+    if (!isFileExists) {
       dialog.showErrorBox('Major Error !', 'amigosData.json not exists !');
       return;
     }
-
-    popUpProgressBar(2, `Try To Open => amigosData.json ..`, true);
+    popUpProgressBar(2, `Try To Open : amigosData.json ..`, true);
   };
+
   const onNo = () => { return };
   await showGenericDialog(title, message, detail, buttons, onYes, onNo);
 });
 
-
-
-ipcMain.on('clear-all-from-store', () => {
-  clearAllStore();
-  popUpProgressBar(4, `Cleaning and Restarting ...`, true);
-  setTimeout(() => { app.relaunch(); app.quit(); }, 1000);
-});
 
 ipcMain.on('open-directory-dialog', async () => {
   const repoPath = await openDialog(mainWindow, ['openDirectory']);
@@ -200,6 +180,11 @@ ipcMain.on('open-file-dialog', async () => {
 
 
 
+const clearAndReset = () => {
+  clearAllStore();
+  popUpProgressBar(4, `Cleaning and Restarting ...`, true);
+  setTimeout(() => { app.relaunch(); app.quit(); }, 1000);
+}
 
 
 app.on("ready", (ev) => {

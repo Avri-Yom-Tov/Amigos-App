@@ -1,6 +1,7 @@
 const { dialog } = require("electron")
 
 const showGenericDialog = async (title, message, detail, buttons, onYes, onNo, checkboxLabel) => {
+  
   detail = detail || "JsIsTheBest";
   buttons = buttons || ["Yes", "No"];
   onYes = onYes || (() => { });
