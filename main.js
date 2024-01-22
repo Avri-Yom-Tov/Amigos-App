@@ -128,7 +128,7 @@ const createWindow = () => {
   Menu.setApplicationMenu(mainMenu);
   mainWindow.loadFile("./html/indexPage.html");
 
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   mainWindow.on("closed", () => { mainWindow = null });
 }
