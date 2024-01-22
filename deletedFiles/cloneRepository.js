@@ -4,7 +4,7 @@ const Swal = require('sweetalert2');
 const fs = require('fs');
 const path = require("path");
 const readFile = require("../utils/readFile");
-const listFilesInDirectory = require("../accessories/listFilesInDirectory");
+const listFilesInDirectory = require("../utils/listFilesInDirectory");
 
 
 (async () => {

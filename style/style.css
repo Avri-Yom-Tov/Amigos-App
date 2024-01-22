@@ -11,12 +11,13 @@
 
 #searchBox {
   margin-top: 5px;
-  width: 30%;
+  width: 15%;
   height: 45px;
   outline: none;
   border: none;
   margin-left: 10px;
   font-size: 18px;
+  font-weight: bold;
 }
 
 body {
@@ -129,7 +130,7 @@ li {
   margin-top: 16px;
 }
 
-.gg-add-r {
+/* .gg-add-r {
   box-sizing: border-box;
   position: relative;
   display: block;
@@ -142,12 +143,10 @@ li {
 .gg-add-r::before {
   content: "";
   display: block;
-
   position: absolute;
   width: 10px;
   height: 2px;
-  /* background: currentColor; */
-  /* border-radius: 5px;+ */
+
   top: 8px;
   left: 4px;
 }
@@ -156,7 +155,7 @@ li {
   height: 10px;
   top: 4px;
   left: 8px;
-}
+} */
 
 .cardAss {
   display: flex;
@@ -172,4 +171,21 @@ li {
   width: 25px;
   height: 25px;
   margin-left: 8px;
+}
+
+#searchType {
+  border-color: aliceblue;
+  border: none;
+  margin-left: 68vw;
+  font-size: 15px;
+  color: gray;
+  font-weight: bold;
+}
+
+.specialOption {
+  border: none;
+  margin-left: 68vw;
+  font-size: 15px;
+  color: gray;
+  font-weight: bold;
 }

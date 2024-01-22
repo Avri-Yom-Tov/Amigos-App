@@ -1,5 +1,5 @@
 
-function showNotification(text1, text2 = "...", isSilent = true, time = 3000) {
+const showNotification = (text1, text2 = "...", isSilent = true, timeToClose = 3000) => {
   const { Notification } = require("electron");
 
   const notification = new Notification({
@@ -12,7 +12,7 @@ function showNotification(text1, text2 = "...", isSilent = true, time = 3000) {
 
   setTimeout(() => {
     notification.close();
-  }, 5000);
+  }, timeToClose);
 }
 
 

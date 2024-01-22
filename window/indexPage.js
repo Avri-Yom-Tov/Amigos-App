@@ -4,16 +4,21 @@
 const Swal = require('sweetalert2');
 const { ipcRenderer } = require('electron');
 
-const listFilesInDirectory = require("../accessories/listFilesInDirectory");
-const getLatestIntelliJPath = require('../utils/getLatestIntelliJPath');
-const { getValue } = require('../accessories/electronStore');
+const listFilesInDirectory = require("../utils/listFilesInDirectory");
+const { getValue } = require('../utils/electronStore');
 const runShellCommand = require("../utils/runShellCommand");
 const openBrowser = require('../utils/openBrowser');
 const openFolder = require('../utils/openFolder');
 const readFile = require('../utils/readFile');
 
-const folderPath = "C:\\Works\\amigos-team";
-const userHome = require('os').homedir();
+
+
+const USER_HOME = require('os').homedir();
+const REPO_FOLDER_PATH = getValue('repoPath');
+const VSCODE_COMMAND = 'code .';
+
+
+const isIntelliJSelected = () => getValue('ideSelect') === 'intellij';
 
 const createButton = (src, title) => {
   const button = document.createElement("img");
@@ -23,18 +28,20 @@ const createButton = (src, title) => {
   return button;
 }
 
-const openWithIDE = (element) => {
 
+const openIDE = (idePath, folderToOpen, message) => {
+  ipcRenderer.send('pop-up-progress-bar', 2, message);
+  runShellCommand(`${REPO_FOLDER_PATH}\\${folderToOpen}`, idePath, true);
+};
+
+const openWithCode = (folderToOpen) => {
   try {
-    const ideSelectToOpenWith = getValue('ideSelect') === 'intellij';
-    if (ideSelectToOpenWith) {
-      const intelliJPath = getLatestIntelliJPath();
-      ipcRenderer.send('pop-up-progress-bar', 2, 'Opening Intellij IDE..');
-      runShellCommand(folderPath + "\\" + element, intelliJPath, true);
+    if (isIntelliJSelected()) {
+      const intelliJPath = getValue('intelliJPath');
+      openIDE(`"${intelliJPath}"`, folderToOpen, 'Opening Intellij IDE..');
       return;
     }
-    ipcRenderer.send('pop-up-progress-bar', 2, 'Opening VS code IDE..');
-    runShellCommand(folderPath + "\\" + element, 'code .', true);
+    openIDE(VSCODE_COMMAND, folderToOpen, 'Opening VsCode IDE..');
 
   } catch (error) {
     Swal.fire({
@@ -43,8 +50,7 @@ const openWithIDE = (element) => {
       text: error.message,
     });
   }
-
-}
+};
 
 const openOnGithub = (element) => {
   ipcRenderer.send('pop-up-progress-bar', 1, 'Opening browser ..');
@@ -53,15 +59,24 @@ const openOnGithub = (element) => {
 
 const openOnFolder = (element) => {
   ipcRenderer.send('pop-up-progress-bar', 2, 'Opening Folder ..');
-  openFolder(folderPath + "\\" + element);
+  openFolder(REPO_FOLDER_PATH + "\\" + element);
+}
+
+const isConfigurationMissing = () => {
+  console.log(getValue());
+  const requiredKeys = ['ideSelect', 'repoPath', 'credentialsPath'];
+  return requiredKeys.some(key => !getValue(key));
 }
 
 
+const isMissingIntelliJPath = () => {
+  return isIntelliJSelected() && !getValue('intelliJPath');
+}
 
 const openResource = async (element, resourceType) => {
   try {
-    const pipesUrls = await readFile(`${userHome}\\amigosData.json`, true);
-    if (pipesUrls[element][resourceType]) {
+    const pipesUrls = await readFile(`${USER_HOME}\\amigosData.json`, true);
+    if (pipesUrls[element] && pipesUrls[element]?.[resourceType]) {
       ipcRenderer.send('pop-up-progress-bar', 2, `Open on ${resourceType}..`);
       setTimeout(() => { openBrowser(pipesUrls[element][resourceType]) }, 1500);
       return;
@@ -83,20 +98,31 @@ const openResource = async (element, resourceType) => {
 
 
 
-
 window.onload = async () => {
 
-  if (!getValue('ideSelect') || !getValue('repoPath') || !getValue('credentialsPath')) {
+  if (isConfigurationMissing()) {
     const title = 'Hey user, Pay attention !';
     const msg = 'Probably this is your first time running this software, you must configure some important settings before you start ..'
     const buttons = ['Yes, Set It Now !', 'No, Exit ..'];
 
     ipcRenderer.send('show-init-dialog', 'info', title, msg, buttons);
+    return;
+  }
+
+  if (isMissingIntelliJPath()) {
+    const title = 'Hey user, Pay attention !';
+    const msg = `It looks like you set your preferred IDE to be IntelliJ -  But you didn't set its install location..`
+    const buttons = ['Set It On Settings !', 'No, Exit ..'];
+
+    ipcRenderer.send('show-init-dialog', 'info', title, msg, buttons);
+    return;
   }
 
 
+  const searchBox = document.getElementById("searchBox");
+  const searchType = document.getElementById("searchType");
   const scriptsList = document.getElementById("scripts");
-  const workFolderRepositories = await listFilesInDirectory(folderPath);
+  const workFolderRepositories = await listFilesInDirectory(REPO_FOLDER_PATH);
   workFolderRepositories.sort((a, b) => a - b);
 
 
@@ -119,7 +145,7 @@ window.onload = async () => {
 
 
     const buttons = [
-      { img: "../img/programming.png", label: "Open On IDE", action: (() => openWithIDE(element)) },
+      { img: "../img/programming.png", label: "Open On IDE", action: (() => openWithCode(element)) },
       { img: "../img/social.png", label: "Open On Github", action: (() => { openOnGithub(element) }) },
       { img: "../img/open-folder.png", label: "Open On Folder", action: (() => { openOnFolder(element) }) },
       { img: "../img/jenkins.png", label: "Open On Jenkins", action: (() => { openResource(element, 'job') }) },
@@ -143,24 +169,37 @@ window.onload = async () => {
   });
 
 
-  const searchBox = document.getElementById("searchBox");
-  searchBox.addEventListener('keyup', function () {
-    const searchValue = searchBox.value.toLowerCase();
-    filterRepositories(searchValue);
-  });
 
-  const filterRepositories = (searchValue) => {
+
+
+  const filterRepositories = () => {
+
+    const searchValue = searchBox.value.toLowerCase();
+    const filterType = searchType.value;
+
     listItems.forEach(item => {
       const repoName = item.element.toLowerCase();
       const listItem = item.card;
 
-      if (repoName.includes(searchValue)) {
-        listItem.style.display = "";
-      } else {
-        listItem.style.display = "none";
+      const isHistorical = repoName.includes('cxhist');
+      let shouldDisplay = false;
+
+      if (filterType === 'All') {
+        shouldDisplay = repoName.includes(searchValue);
       }
+      else if (filterType === 'AppLink') {
+        shouldDisplay = !isHistorical && repoName.includes(searchValue);
+      }
+      else if (filterType === 'Historical') {
+        shouldDisplay = isHistorical && repoName.includes(searchValue);
+      }
+
+      listItem.style.display = shouldDisplay ? "" : "none";
     });
-  }
+  };
+
+  searchBox.addEventListener('keyup', filterRepositories);
+  searchType.addEventListener('change', filterRepositories);
 };
 
 

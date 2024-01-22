@@ -1,4 +1,4 @@
-const { setValue, getValue, clearAllStore } = require('./accessories/electronStore');
+const { setValue, getValue, clearAllStore } = require('./utils/electronStore');
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
 const showGenericDialog = require('./utils/showGenericDialog');
 const popUpProgressBar = require("./utils/popUpProgressBar");
@@ -12,6 +12,7 @@ const openFile = require('./utils/openFile');
 const { exec } = require("child_process");
 
 const userHome = require('os').homedir();
+const devUser = process.env.MODE = 1;
 let mainWindow;
 
 const createWindow = () => {
@@ -54,7 +55,7 @@ const createWindow = () => {
           label: "Book A Desk .. ( OfficeSpace )",
           click: () => { openBrowser("https://nice.officespacesoftware.com/visual-directory/floors/78") },
         },
-        ...(process.env.MODE ? [{
+        ...(devUser ? [{
           label: "Copy to the clipboard  .. ( Js .. ) ",
           click: (() => { copyToClipboard(`await require('C:/Intel/Amigos-App/accessories/setAWSCredentials.js');`) })
         }] : []),
@@ -98,7 +99,6 @@ const createWindow = () => {
         {
           label: "Console ..",
           click: () => {
-            process.env.MODE && clearAndReset();
             mainWindow.webContents.openDevTools();
           },
         },
@@ -112,6 +112,12 @@ const createWindow = () => {
           label: "About ..",
           click: () => {
             mainWindow.loadFile("./html/aboutThisApp.html");
+          },
+        },
+        {
+          label: "Reset ..",
+          click: () => {
+            clearAndReset();
           },
         },
       ],
@@ -172,11 +178,10 @@ ipcMain.on('open-directory-dialog', async () => {
   setValue('repoPath', repoPath);
 });
 
-ipcMain.on('open-file-dialog', async () => {
-  const credentialsPath = await openDialog(mainWindow, ['openFile'], [{ name: 'Powershell Script', extensions: ['ps1'] }]);
-  setValue('credentialsPath', credentialsPath);
+ipcMain.on('open-file-dialog', async (event, { name, extensions }) => {
+  const credentialsPath = await openDialog(mainWindow, ['openFile'], [{ name, extensions }]);
+  setValue(name, credentialsPath);
 });
-
 
 
 
@@ -187,10 +192,7 @@ const clearAndReset = () => {
 }
 
 
-app.on("ready", (ev) => {
-  createWindow();
-  app.setAppUserModelId('App Link App');
-});
+app.on("ready", () => { createWindow(); app.setAppUserModelId('App Link App') });
 
 
 

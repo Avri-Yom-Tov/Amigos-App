@@ -1,5 +1,5 @@
 {
-  "name": "automation-studio",
+  "name": "app-link-app",
   "version": "1.6.0",
   "description": "A powerful and user-friendly Electron application for managing your tasks efficiently.",
   "main": "main.js",
@@ -11,17 +11,9 @@
   "author": "Avri",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.4.0",
-    "deep-equal": "^2.2.2",
     "dialog": "^0.3.1",
-    "electron-alert": "^0.1.20",
-    "electron-modal": "^1.0.0",
     "electron-progressbar": "^2.0.1",
-    "ini": "^4.1.1",
-    "install": "^0.13.0",
-    "jquery": "^3.6.4",
-    "npm": "^10.1.0",
-    "simple-git": "^3.19.1",
+    "electron-store": "^8.1.0",
     "sudo-prompt": "^9.2.1",
     "sweetalert2": "^11.7.8"
   },
@@ -37,7 +29,6 @@
       "output": "dist"
     },
     "files": [
-      "accessories/**/*",
       "html/**/*",
       "img/**/*",
       "style/**/*",

@@ -10,5 +10,5 @@ backButton.addEventListener("click", () => {
 });
 
 sourceCode.addEventListener("click", () => {
-    openBrowser("https://github.com/Avri-Yom-Tov/AS-Team-App");
+    openBrowser("https://github.com/Avri-Yom-Tov/Amigos-App");
 });
