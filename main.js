@@ -143,8 +143,6 @@ ipcMain.on('close-windows', () => { app.quit() });
 
 ipcMain.on('pop-up-progress-bar', (event, time, message) => { popUpProgressBar(time, message) });
 
-ipcMain.on('pop-up-progress-bar', (event, time, message) => { popUpProgressBar(time, message) });
-
 ipcMain.on('set-value-in-store', (event, key, value) => { setValue(key, value) });
 
 ipcMain.on('show-init-dialog', async (event, title, message, detail, buttons) => {

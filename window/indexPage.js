@@ -4,7 +4,7 @@
 const Swal = require('sweetalert2');
 const { ipcRenderer } = require('electron');
 
-const listFilesInDirectory = require("../utils/listFilesInDirectory");
+const listFolderInDirectory = require("../utils/listFolderInDirectory");
 const { getValue } = require('../utils/electronStore');
 const runShellCommand = require("../utils/runShellCommand");
 const openBrowser = require('../utils/openBrowser');
@@ -31,7 +31,8 @@ const createButton = (src, title) => {
 
 const openIDE = (idePath, folderToOpen, message) => {
   ipcRenderer.send('pop-up-progress-bar', 2, message);
-  runShellCommand(`${REPO_FOLDER_PATH}\\${folderToOpen}`, idePath, true);
+  runShellCommand(`${REPO_FOLDER_PATH}\\${folderToOpen}`, idePath, false);
+
 };
 
 const openWithCode = (folderToOpen) => {
@@ -122,7 +123,7 @@ window.onload = async () => {
   const searchBox = document.getElementById("searchBox");
   const searchType = document.getElementById("searchType");
   const scriptsList = document.getElementById("scripts");
-  const workFolderRepositories = await listFilesInDirectory(REPO_FOLDER_PATH);
+  const workFolderRepositories = await listFolderInDirectory(REPO_FOLDER_PATH);
   workFolderRepositories.sort((a, b) => a - b);
 
 
