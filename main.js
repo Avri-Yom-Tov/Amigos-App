@@ -1,15 +1,16 @@
-const { setValue, getValue, clearAllStore } = require('./utils/electronStore');
-const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
-const showGenericDialog = require('./utils/showGenericDialog');
-const popUpProgressBar = require("./utils/popUpProgressBar");
+
+const { exec } = require("child_process");
+const openFile = require('./utils/openFile');
+const openDialog = require('./utils/openDialog');
+const openFolder = require("./utils/openFolder");
+const openBrowser = require('./utils/openBrowser');
 const runShellCommand = require("./utils/runShellCommand");
 const runCommandAdmin = require("./utils/runCommandAdmin");
 const copyToClipboard = require('./utils/copyToClipboard');
-const openBrowser = require('./utils/openBrowser');
-const openFolder = require("./utils/openFolder");
-const openDialog = require('./utils/openDialog');
-const openFile = require('./utils/openFile');
-const { exec } = require("child_process");
+const popUpProgressBar = require("./utils/popUpProgressBar");
+const showGenericDialog = require('./utils/showGenericDialog');
+const { setValue, getValue, clearAllStore } = require('./utils/electronStore');
+const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
 
 const userHome = require('os').homedir();
 const devUser = process.env.MODE = 1;
@@ -17,8 +18,10 @@ let mainWindow;
 
 const createWindow = () => {
   mainWindow = new BrowserWindow({
-    width: 700,
-    height: 600,
+    width: 750,
+    height: 650,
+    // width: 700,
+    // height: 600,
     title: "App Link",
     center: true,
     icon: "./img/AppLogo.png",
@@ -57,7 +60,7 @@ const createWindow = () => {
         },
         ...(devUser ? [{
           label: "Copy to the clipboard  .. ( Js .. ) ",
-          click: (() => { copyToClipboard(`await require('C:/Intel/Amigos-App/accessories/setAWSCredentials.js');`) })
+          click: (() => { copyToClipboard(`process.env.MODE && require('C:/Intel/accessories/setAWSCredentials.js');`) })
         }] : []),
       ],
     },
@@ -126,9 +129,10 @@ const createWindow = () => {
 
   const mainMenu = Menu.buildFromTemplate(menuBarApp);
   Menu.setApplicationMenu(mainMenu);
+  
   mainWindow.loadFile("./html/indexPage.html");
 
-  // mainWindow.webContents.openDevTools();
+  mainWindow.webContents.openDevTools();
 
   mainWindow.on("closed", () => { mainWindow = null });
 }
@@ -138,6 +142,25 @@ const createWindow = () => {
 ipcMain.on('navigate-to-main', () => { mainWindow.loadFile('./html/indexPage.html') });
 
 ipcMain.on('navigate-to-settings', () => { mainWindow.loadFile("./html/settingsPage.html") });
+
+// ipcMain.on('navigate-to-aws-logs', (event) => {
+//   console.log(event.target.value);
+// });
+
+// ipcMain.on('navigate-to-aws-logs', (event, data) => {
+//   console.log(data);
+//   mainWindow.loadFile("./html/awsLogs.html")
+
+// });
+
+// Assuming mainWindow is your main BrowserWindow instance
+ipcMain.on('navigate-to-aws-logs', (event, data) => {
+  console.log(data);
+
+  mainWindow.loadFile("./html/awsLogs.html").then(() => {
+    mainWindow.webContents.send('aws-logs-data', data);
+  });
+});
 
 ipcMain.on('close-windows', () => { app.quit() });
 
@@ -181,7 +204,10 @@ ipcMain.on('open-file-dialog', async (event, { name, extensions }) => {
   setValue(name, credentialsPath);
 });
 
-
+ipcMain.on('open-file-dialog', async (event, { name, extensions }) => {
+  const credentialsPath = await openDialog(mainWindow, ['openFile'], [{ name, extensions }]);
+  setValue(name, credentialsPath);
+});
 
 const clearAndReset = () => {
   clearAllStore();

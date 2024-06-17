@@ -3,13 +3,13 @@
 
 const Swal = require('sweetalert2');
 const { ipcRenderer } = require('electron');
-
-const listFolderInDirectory = require("../utils/listFolderInDirectory");
+const { exec } = require('child_process');
+const readFile = require('../utils/readFile');
+const openFolder = require('../utils/openFolder');
+const openBrowser = require('../utils/openBrowser');
 const { getValue } = require('../utils/electronStore');
 const runShellCommand = require("../utils/runShellCommand");
-const openBrowser = require('../utils/openBrowser');
-const openFolder = require('../utils/openFolder');
-const readFile = require('../utils/readFile');
+const listFolderInDirectory = require("../utils/listFolderInDirectory");
 
 
 
@@ -31,7 +31,7 @@ const createButton = (src, title) => {
 
 const openIDE = (idePath, folderToOpen, message) => {
   ipcRenderer.send('pop-up-progress-bar', 2, message);
-  runShellCommand(`${REPO_FOLDER_PATH}\\${folderToOpen}`, idePath, false);
+  runShellCommand(`${REPO_FOLDER_PATH}\\${folderToOpen}`, idePath, true);
 
 };
 
@@ -101,6 +101,26 @@ const openResource = async (element, resourceType) => {
 
 window.onload = async () => {
 
+  if (!sessionStorage.getItem('appOpened')) {
+
+    const splash = document.getElementById('splash');
+    splash.style.display = 'flex';
+
+    const audio = new Audio('../sound/xpStartupSound.mp3');
+    audio.play().catch(error => {
+      console.error('Error playing sound :', error);
+    });
+
+    sessionStorage.setItem('appOpened', 'true');
+
+    setTimeout(() => {
+      splash.style.display = 'none';
+    }, 4000);
+  }
+
+
+
+
   if (isConfigurationMissing()) {
     const title = 'Hey user, Pay attention !';
     const msg = 'Probably this is your first time running this software, you must configure some important settings before you start ..'
@@ -129,7 +149,7 @@ window.onload = async () => {
 
   let listItems = [];
 
-  workFolderRepositories.forEach((element) => {
+  workFolderRepositories.forEach(element => {
 
     const btnContainer = document.createElement("div");
     const card = document.createElement("li");
@@ -138,7 +158,8 @@ window.onload = async () => {
     card.classList.add("collection-item");
 
     const repoName = element.startsWith("cloud-formation-") && element !== 'cloud-formation-cxhist-storage' ? element.substring("cloud-formation-".length) : element;
-    title.innerHTML = repoName.charAt(0).toUpperCase() + repoName.slice(1).toLowerCase();
+    const removeCxone = repoName.replace('cxone-', '');
+    title.innerHTML = removeCxone.charAt(0).toUpperCase() + removeCxone.slice(1).toLowerCase();
     title.classList.add("card-title");
 
 
@@ -150,11 +171,51 @@ window.onload = async () => {
       { img: "../img/social.png", label: "Open On Github", action: (() => { openOnGithub(element) }) },
       { img: "../img/open-folder.png", label: "Open On Folder", action: (() => { openOnFolder(element) }) },
       { img: "../img/jenkins.png", label: "Open On Jenkins", action: (() => { openResource(element, 'job') }) },
-      { img: "../img/amazon.png", label: "Open On Aws", action: (() => { openResource(element, 'aws') }) }
+      { img: "../img/amazon.png", label: "Open On Aws", action: (() => { openResource(element, 'aws') }) },
     ];
 
 
-    buttons.forEach(({ img, label, action }) => {
+    const lambdaName = "dev-" + element;
+
+    const path = require('path');
+    const scriptPath = path.join(__dirname, '../script', 'awsLogs.ps1');
+
+    // Button action
+    const buttonAction = () => {
+      exec(`start powershell.exe -NoExit -File "${scriptPath}" -LambdaName ${lambdaName}`, (error, stdout, stderr) => {
+        if (error) {
+          console.error(`Error executing PowerShell script: ${error.message}`);
+          return;
+        }
+        if (stderr) {
+          console.error(`PowerShell script stderr: ${stderr}`);
+          return;
+        }
+        console.log(`PowerShell script output: ${stdout}`);
+      });
+    };
+    if (element.includes('lambda') && !element.includes('cxhist')) {
+      const type = element.includes('lambda') ? 'lambda' : 'state-machine';
+      buttons.push({
+        img: "../img/awsCloudwatchLogo.png",
+        label: "Get Logs - AwsCloudwatch ",
+        action: buttonAction
+        // action: (() => { ipcRenderer.send("navigate-to-aws-logs", { name: element, type }) })
+        // label: "Get Logs - AwsCloudwatch ", action: (() => { ipcRenderer.send("navigate-to-aws-logs", { name: element, type }) })
+      }
+      );
+    }
+    else {
+      buttons.push({
+        img: "../img/x.png",
+        label: "AwsCloudwatch Not available .. ",
+        // action: buttonAction
+      }
+      );
+    }
+
+
+    [...buttons].forEach(({ img, label, action }) => {
       const button = createButton(img, label);
       button.addEventListener('click', action);
       btnContainer.appendChild(button);
@@ -182,20 +243,29 @@ window.onload = async () => {
       const repoName = item.element.toLowerCase();
       const listItem = item.card;
 
+      const isAppLink = repoName.includes('applink') || repoName.includes('hybrid-recording');
       const isHistorical = repoName.includes('cxhist');
+      const isStoreAndForward = repoName.includes('-snf');
       let shouldDisplay = false;
 
       if (filterType === 'All') {
         shouldDisplay = repoName.includes(searchValue);
       }
       else if (filterType === 'AppLink') {
-        shouldDisplay = !isHistorical && repoName.includes(searchValue);
+        shouldDisplay = isAppLink && repoName.includes(searchValue);
       }
       else if (filterType === 'Historical') {
         shouldDisplay = isHistorical && repoName.includes(searchValue);
       }
+      else if (filterType === 'S&F') {
+        shouldDisplay = isStoreAndForward && repoName.includes(searchValue);
+      }
+
 
       listItem.style.display = shouldDisplay ? "" : "none";
+
+
+
     });
   };
 
