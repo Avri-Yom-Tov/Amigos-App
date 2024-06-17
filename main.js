@@ -102,7 +102,7 @@ const createWindow = () => {
         {
           label: "Console ..",
           click: () => {
-            mainWindow.webContents.openDevTools();
+            // mainWindow.webContents.openDevTools();
           },
         },
         {
