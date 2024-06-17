@@ -143,25 +143,6 @@ ipcMain.on('navigate-to-main', () => { mainWindow.loadFile('./html/indexPage.htm
 
 ipcMain.on('navigate-to-settings', () => { mainWindow.loadFile("./html/settingsPage.html") });
 
-// ipcMain.on('navigate-to-aws-logs', (event) => {
-//   console.log(event.target.value);
-// });
-
-// ipcMain.on('navigate-to-aws-logs', (event, data) => {
-//   console.log(data);
-//   mainWindow.loadFile("./html/awsLogs.html")
-
-// });
-
-// Assuming mainWindow is your main BrowserWindow instance
-ipcMain.on('navigate-to-aws-logs', (event, data) => {
-  console.log(data);
-
-  mainWindow.loadFile("./html/awsLogs.html").then(() => {
-    mainWindow.webContents.send('aws-logs-data', data);
-  });
-});
-
 ipcMain.on('close-windows', () => { app.quit() });
 
 ipcMain.on('pop-up-progress-bar', (event, time, message) => { popUpProgressBar(time, message) });
