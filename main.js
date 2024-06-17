@@ -102,7 +102,7 @@ const createWindow = () => {
         {
           label: "Console ..",
           click: () => {
-            // mainWindow.webContents.openDevTools();
+            mainWindow.webContents.openDevTools();
           },
         },
         {
@@ -132,7 +132,7 @@ const createWindow = () => {
   
   mainWindow.loadFile("./html/indexPage.html");
 
-  mainWindow.webContents.openDevTools();
+  // mainWindow.webContents.openDevTools();
 
   mainWindow.on("closed", () => { mainWindow = null });
 }
