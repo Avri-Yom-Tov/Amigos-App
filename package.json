@@ -11,8 +11,6 @@
   "author": "Avri",
   "license": "ISC",
   "dependencies": {
-    "@aws-sdk/client-cloudwatch-logs": "^3.592.0",
-    "@aws-sdk/client-lambda": "^3.592.0",
     "dialog": "^0.3.1",
     "electron-progressbar": "^2.0.1",
     "electron-store": "^8.1.0",
