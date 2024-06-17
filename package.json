@@ -36,6 +36,7 @@
       "style/**/*",
       "utils/**/*",
       "window/**/*",
+      "sound/**/*",
       "main.js",
       "package.json"
     ],
