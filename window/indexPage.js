@@ -76,7 +76,7 @@ const isMissingIntelliJPath = () => {
 
 const openResource = async (element, resourceType) => {
   try {
-    const pipesUrls = await readFile(`${USER_HOME}\\amigosData.json`, true);
+    const pipesUrls = await readFile(`${USER_HOME}\\amigosApp\\amigosData.json`, true);
     if (pipesUrls[element] && pipesUrls[element]?.[resourceType]) {
       ipcRenderer.send('pop-up-progress-bar', 2, `Open on ${resourceType}..`);
       setTimeout(() => { openBrowser(pipesUrls[element][resourceType]) }, 1500);
@@ -177,8 +177,7 @@ window.onload = async () => {
 
     const lambdaName = "dev-" + element;
 
-    const path = require('path');
-    const scriptPath = path.join(__dirname, '../script', 'awsLogs.ps1');
+    const scriptPath = `${USER_HOME}\\amigosApp\\awsLogs.ps1`
 
     // Button action
     const buttonAction = () => {

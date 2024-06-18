@@ -20,8 +20,6 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 750,
     height: 650,
-    // width: 700,
-    // height: 600,
     title: "App Link",
     center: true,
     icon: "./img/AppLogo.png",
