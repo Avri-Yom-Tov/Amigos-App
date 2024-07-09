@@ -9,10 +9,10 @@ const runCommandAdmin = require("./utils/runCommandAdmin");
 const copyToClipboard = require('./utils/copyToClipboard');
 const popUpProgressBar = require("./utils/popUpProgressBar");
 const showGenericDialog = require('./utils/showGenericDialog');
-const { setValue, getValue, clearAllStore } = require('./utils/electronStore');
+const userHome = require('os').homedir(), path = require('path')
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
+const { setValue, getValue, clearAllStore } = require('./utils/electronStore');
 
-const userHome = require('os').homedir();
 const devUser = process.env.MODE = 1;
 let mainWindow;
 
@@ -127,7 +127,7 @@ const createWindow = () => {
 
   const mainMenu = Menu.buildFromTemplate(menuBarApp);
   Menu.setApplicationMenu(mainMenu);
-  
+
   mainWindow.loadFile("./html/indexPage.html");
 
   // mainWindow.webContents.openDevTools();
@@ -160,7 +160,7 @@ ipcMain.on('show-init-dialog', async (event, title, message, detail, buttons) =>
 
 ipcMain.on('show-config-dialog', async (event, title, message, detail, buttons) => {
   const onYes = () => {
-    const isFileExists = openFile(userHome, 'amigosData.json');
+    const isFileExists = openFile(path.join(userHome, 'amigosApp'), 'amigosData.json');
     if (!isFileExists) {
       dialog.showErrorBox('Major Error !', 'amigosData.json not exists !');
       return;

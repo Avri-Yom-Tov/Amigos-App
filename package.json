@@ -5,8 +5,7 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "pack": "electron-builder",
-    "dist": "electron-builder --publish always"
+    "pack": "electron-builder"
   },
   "author": "Avri",
   "license": "ISC",
@@ -31,7 +30,6 @@
     },
     "files": [
       "html/**/*",
-      "script/**/*",
       "img/**/*",
       "style/**/*",
       "utils/**/*",
