@@ -103,13 +103,13 @@ window.onload = async () => {
 
   if (!sessionStorage.getItem('appOpened')) {
 
-    const splash = document.getElementById('splash');
-    splash.style.display = 'flex';
+    // const splash = document.getElementById('splash');
+    // splash.style.display = 'flex';
 
-    const audio = new Audio('../sound/xpStartupSound.mp3');
-    audio.play().catch(error => {
-      console.error('Error playing sound :', error);
-    });
+    // const audio = new Audio('../sound/xpStartupSound.mp3');
+    // audio.play().catch(error => {
+    //   console.error('Error playing sound :', error);
+    // });
 
     sessionStorage.setItem('appOpened', 'true');
 

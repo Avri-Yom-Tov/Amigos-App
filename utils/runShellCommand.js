@@ -1,6 +1,7 @@
 
 
 const runShellCommand = (location, script, closeAfterCompletion) => {
+  
   location = location || "C:\\Works\\amigos-team";
   const runAt = `start cmd /${closeAfterCompletion ? "c" : "k"} "cd /d ${location.replace(/\//g, '\\')} && `;
   const totalCommand = `${runAt}${script}"`;

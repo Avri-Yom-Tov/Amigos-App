@@ -64,7 +64,8 @@ const createWindow = () => {
           label: "Open Terminal - Work Space .. ",
           click: () => {
             const command = "cmd /k echo Type A Command and press Enter to Run it ..."
-            runShellCommand(undefined, command)
+            const location = getValue('repoPath') || require('os').homedir();
+            runShellCommand(location, command)
           }
         },
         {
