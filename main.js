@@ -12,7 +12,6 @@ const userHome = require('os').homedir(), path = require('path')
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
 const { setValue, getValue, clearAllStore } = require('./utils/electronStore');
 
-const devUser = process.env.MODE = 1;
 let mainWindow;
 
 const createWindow = () => {
