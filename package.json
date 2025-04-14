@@ -5,7 +5,8 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "pack": "electron-builder"
+    "pack": "electron-builder",
+    "buildUnpacked": "electron-builder --win --dir"
   },
   "author": "Avri",
   "license": "ISC",
@@ -42,9 +43,7 @@
       "package.json"
     ],
     "win": {
-      "appId": "App Link App",
       "target": "nsis",
-      "publisherName": "AS-Team-App.com",
       "icon": "./img/AppLogo.png"
     }
   }

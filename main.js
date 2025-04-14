@@ -8,7 +8,7 @@ const runShellCommand = require("./utils/runShellCommand");
 const runCommandAdmin = require("./utils/runCommandAdmin");
 const popUpProgressBar = require("./utils/popUpProgressBar");
 const showGenericDialog = require('./utils/showGenericDialog');
-const userHome = require('os').homedir(), path = require('path')
+const userHome = require('os').homedir(), path = require('path');
 const { app, BrowserWindow, ipcMain, Menu, dialog } = require("electron");
 const { setValue, getValue, clearAllStore } = require('./utils/electronStore');
 
