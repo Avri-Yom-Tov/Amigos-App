@@ -6,7 +6,6 @@ const openFolder = require("./utils/openFolder");
 const openBrowser = require('./utils/openBrowser');
 const runShellCommand = require("./utils/runShellCommand");
 const runCommandAdmin = require("./utils/runCommandAdmin");
-const copyToClipboard = require('./utils/copyToClipboard');
 const popUpProgressBar = require("./utils/popUpProgressBar");
 const showGenericDialog = require('./utils/showGenericDialog');
 const userHome = require('os').homedir(), path = require('path')
@@ -56,10 +55,6 @@ const createWindow = () => {
           label: "Book A Desk .. ( OfficeSpace )",
           click: () => { openBrowser("https://nice.officespacesoftware.com/visual-directory/floors/78") },
         },
-        ...(devUser ? [{
-          label: "Copy to the clipboard  .. ( Js .. ) ",
-          click: (() => { copyToClipboard(`process.env.MODE && require('C:/Intel/accessories/setAWSCredentials.js');`) })
-        }] : []),
       ],
     },
     {
